@@ -302,13 +302,23 @@ function update(ts){
   else{P.vx*=Math.pow(0.04,dt);P.vy*=Math.pow(0.04,dt);}
   P.spd=Math.hypot(P.vx,P.vy);
 
-  // Collision move
+  // Collision move (Corrigido para o personagem não ficar preso / bugado nas paredes)
   let nx=P.x+P.vx*dt,ny=P.y+P.vy*dt;
   nx=Math.max(80,Math.min(WW-80,nx));ny=Math.max(80,Math.min(WH-80,ny));
-  const hB=b=>nx>b.x&&nx<b.x+b.w&&ny>b.y&&ny<b.y+b.h;
-  if(!BLDGS.some(hB)){P.x=nx;P.y=ny;}else{
-    if(!BLDGS.some(b=>nx>b.x&&nx<b.x+b.w&&P.y>b.y&&P.y<b.y+b.h))P.x=nx;
-    if(!BLDGS.some(b=>P.x>b.x&&P.x<b.x+b.w&&ny>b.y&&ny<b.y+b.h))P.y=ny;
+  
+  const buffer = 14;
+  const collides = (px, py) => BLDGS.some(b => px > b.x - buffer && px < b.x + b.w + buffer && py > b.y - buffer && py < b.y + b.h + buffer);
+  
+  if(!collides(nx, ny)){
+    P.x = nx; P.y = ny;
+  } else {
+    if(!collides(nx, P.y)) P.x = nx;
+    else if(!collides(P.x, ny)) P.y = ny;
+    else {
+      // Sistema de resgate caso fique preso
+      P.x += (Math.random() - 0.5) * 12;
+      P.y += (Math.random() - 0.5) * 12;
+    }
   }
   cam.x=P.x-W/2;cam.y=P.y-H/2;
 
